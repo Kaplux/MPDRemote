@@ -38,7 +38,7 @@ class PlaylistAdapter extends ArrayAdapter<Song> {
 
 	@Override
 	public boolean isEnabled(int position) {
-		return false;
+		return true;
 	}
 
 }

@@ -29,7 +29,7 @@
 		<dependency>
 			<groupId>org.bff.javampd</groupId>
 			<artifactId>javampd</artifactId>
-			<version>4.0</version>
+			<version>4.1-SNAPSHOT</version>
 			<scope>compile</scope>
 		</dependency>
 		<dependency>

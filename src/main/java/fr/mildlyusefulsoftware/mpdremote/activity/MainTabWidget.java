@@ -18,13 +18,18 @@ public class MainTabWidget extends TabActivity {
 		TabHost.TabSpec spec; // Resusable TabSpec for each tab
 		Intent intent; // Reusable Intent for each tab
 
-		// Create an Intent to launch an Activity for the tab (to be reused)
 		intent = new Intent().setClass(this, PlaylistActivity.class);
-
-		// Initialize a TabSpec for each tab and add it to the TabHost
 		spec = tabHost
-				.newTabSpec("artists")
-				.setIndicator("Artists",
+				.newTabSpec("playlist")
+				.setIndicator("PlayList",
+						res.getDrawable(R.drawable.icon))
+				.setContent(intent);
+		tabHost.addTab(spec);
+
+		intent = new Intent().setClass(this, SongLibraryActivity.class);
+		spec = tabHost
+				.newTabSpec("library")
+				.setIndicator("Library",
 						res.getDrawable(R.drawable.icon))
 				.setContent(intent);
 		tabHost.addTab(spec);

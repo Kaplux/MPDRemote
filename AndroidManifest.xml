@@ -19,6 +19,8 @@
         </activity>
         <activity android:name=".activity.PlaylistActivity" >
         </activity>   
+         <activity android:name=".activity.SongLibraryActivity" >
+        </activity>   
     </application>
 
 </manifest>

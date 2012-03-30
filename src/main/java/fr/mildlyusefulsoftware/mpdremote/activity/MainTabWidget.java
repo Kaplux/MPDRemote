@@ -22,7 +22,7 @@ public class MainTabWidget extends TabActivity {
 		spec = tabHost
 				.newTabSpec("playlist")
 				.setIndicator("PlayList",
-						res.getDrawable(R.drawable.icon))
+						res.getDrawable(android.R.drawable.ic_btn_speak_now))
 				.setContent(intent);
 		tabHost.addTab(spec);
 
@@ -30,11 +30,11 @@ public class MainTabWidget extends TabActivity {
 		spec = tabHost
 				.newTabSpec("library")
 				.setIndicator("Library",
-						res.getDrawable(R.drawable.icon))
+						res.getDrawable(android.R.drawable.ic_menu_search))
 				.setContent(intent);
 		tabHost.addTab(spec);
 
 
-		tabHost.setCurrentTab(1);
+		tabHost.setCurrentTab(0);
 	}
 }

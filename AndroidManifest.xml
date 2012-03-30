@@ -21,6 +21,8 @@
         </activity>   
          <activity android:name=".activity.SongLibraryActivity" >
         </activity>   
+            <activity android:name=".activity.MPDRemotePreferencesActivity" >
+        </activity>   
     </application>
 
 </manifest>

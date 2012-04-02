@@ -3,45 +3,51 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+    <ListView
+        android:id="@+id/playlistView"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_weight="0.9"
+         >
+    </ListView>
+
     <LinearLayout
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
-
-        <ImageView
-            android:id="@+id/imageView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/icon" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="0dp"
+        android:layout_weight="0.1"
+        android:background="@android:drawable/alert_light_frame"
+        android:orientation="vertical" >
 
         <LinearLayout
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content" >
+            android:layout_height="wrap_content"
+            android:gravity="center" >
 
             <Button
                 android:id="@+id/previousSongButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:drawableTop="@android:drawable/ic_media_previous" />
 
             <Button
                 android:id="@+id/playButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:drawableTop="@android:drawable/ic_media_play" />
 
             <Button
                 android:id="@+id/nextSongButton"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="50dp"
                 android:drawableTop="@android:drawable/ic_media_next" />
         </LinearLayout>
-    </LinearLayout>
 
-    <ListView
-        android:id="@+id/playlistView"
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        >
-    </ListView>
+        <SeekBar
+            android:id="@+id/playlistSeekbar"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content" >
+        </SeekBar>
+    </LinearLayout>
 
 </LinearLayout>

@@ -11,7 +11,6 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.text.SpannableString;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -19,11 +18,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
@@ -34,12 +36,16 @@ public class PlaylistActivity extends Activity implements MPDListener,
 		OnSharedPreferenceChangeListener {
 
 	private Song selectedSong = null;
-	final List<Song> songsInPlaylist = new ArrayList<Song>();
+	private final List<Song> songsInPlaylist = new ArrayList<Song>();
+	private MPDService mpd;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mpd=new MPDService(this);
+		requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		setContentView(R.layout.playlist_layout);
-		MPDService.getInstance(this).addPlaylistChangeListener(this);
+		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
+		mpd.addPlaylistChangeListener(this);
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
 		registerForContextMenu(playlistView);
 		playlistView.setAdapter(new PlaylistAdapter(this, songsInPlaylist));
@@ -52,14 +58,55 @@ public class PlaylistActivity extends Activity implements MPDListener,
 		});
 
 		Button playButton = (Button) findViewById(R.id.playButton);
-		final MPDService mpd = MPDService.getInstance(this);
 		playButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				if (selectedSong != null) {
-					mpd.playSong(selectedSong);
+					mpd.playOrPauseSong(selectedSong);
 				}
+			}
+		});
+		
+		Button previousButton = (Button) findViewById(R.id.previousSongButton);
+		previousButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+					mpd.playPreviousSong();
+			}
+		});
+		
+		Button nextButton = (Button) findViewById(R.id.nextSongButton);
+		nextButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+					mpd.playNextSong();
+			}
+		});
+		
+		
+		final SeekBar sb=(SeekBar) findViewById(R.id.playlistSeekbar);
+		sb.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
+			
+			@Override
+			public void onStopTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onStartTrackingTouch(SeekBar seekBar) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+			//	mpd.seek(progress);
+				
 			}
 		});
 	}
@@ -83,9 +130,10 @@ public class PlaylistActivity extends Activity implements MPDListener,
 
 	@Override
 	public void currentlyPlayingSongChanged(
-			CurrentlyPlayingSong currentlyPlayingSong) {
-		this.setTitle(new SpannableString(currentlyPlayingSong.getSong()
-				.getTitle()));
+			final CurrentlyPlayingSong currentlyPlayingSong) {
+		final SeekBar sb=(SeekBar) findViewById(R.id.playlistSeekbar);
+		sb.setMax(currentlyPlayingSong.getSong().getLength());
+		sb.setProgress((int)currentlyPlayingSong.getElapsedTime());
 
 	}
 
@@ -107,7 +155,7 @@ public class PlaylistActivity extends Activity implements MPDListener,
 					.getMenuInfo();
 			Song selectedSong = (Song) (songLibraryView
 					.getItemAtPosition(info.position));
-			MPDService.getInstance(this).removeSongFromPlaylist(selectedSong);
+			mpd.removeSongFromPlaylist(selectedSong);
 			return true;
 		default:
 			return super.onContextItemSelected(item);
@@ -144,7 +192,7 @@ public class PlaylistActivity extends Activity implements MPDListener,
 			portString = "6600";
 		}
 		String hostname = prefs.getString("mpd_host_preference", "localhost");
-		MPDService.getInstance(this).connect(portString, hostname);
+		mpd.connect(portString, hostname);
 	}
 
 }

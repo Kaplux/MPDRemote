@@ -5,6 +5,7 @@ public class Song {
 	private int id;
 	private String title;
 	private String filename;
+	private int length;
 
 	public String getTitle() {
 		return title;
@@ -28,5 +29,13 @@ public class Song {
 
 	public void setFilename(String filename) {
 		this.filename = filename;
+	}
+
+	public int getLength() {
+		return length;
+	}
+
+	public void setLength(int length) {
+		this.length = length;
 	}
 }

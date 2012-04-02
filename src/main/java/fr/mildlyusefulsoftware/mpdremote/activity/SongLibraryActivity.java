@@ -15,13 +15,14 @@ import fr.mildlyusefulsoftware.mpdremote.service.MPDService;
 
 public class SongLibraryActivity extends Activity {
 
+	private MPDService mpd;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.song_library_layout);
 		final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
 		registerForContextMenu(songLibraryView);
-		songLibraryView.setAdapter(new PlaylistAdapter(this, MPDService
-				.getInstance(this).getSongsInLibrary()));
+		songLibraryView.setAdapter(new PlaylistAdapter(this,mpd.getSongsInLibrary()));
 
 	}
 
@@ -43,7 +44,7 @@ public class SongLibraryActivity extends Activity {
 					.getMenuInfo();
 			Song selectedSong = (Song) (songLibraryView
 					.getItemAtPosition(info.position));
-			MPDService.getInstance(this).addSongToPlayList(selectedSong);
+			mpd.addSongToPlayList(selectedSong);
 			return true;
 		default:
 			return super.onContextItemSelected(item);

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -24,13 +23,12 @@ import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
 import fr.mildlyusefulsoftware.mpdremote.service.MPDListener;
-import fr.mildlyusefulsoftware.mpdremote.util.MPDRemoteUtils;
 
 public class PlaylistActivity extends AbstractMPDActivity implements
 		MPDListener {
 
 	private Song selectedSong = null;
-	boolean seeking = false;
+	long lastTimeSeeked=0;
 	private final List<Song> songsInPlaylist = new ArrayList<Song>();
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -99,20 +97,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				seeking = true;
-				mpd.seek(progress);
-				new Thread(new Runnable() {
-					
-					@Override
-					public void run() {
-						try {
-							Thread.sleep(1000);
-						} catch (InterruptedException e) {
-							Log.e(MPDRemoteUtils.TAG,e.getMessage(),e);
-						}
-						seeking = false;
-					}
-				});
+				lastTimeSeeked = System.currentTimeMillis();
 				
 			}
 		});
@@ -138,7 +123,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	@Override
 	public void currentlyPlayingSongChanged(
 			final CurrentlyPlayingSong currentlyPlayingSong) {
-		if (!seeking) {
+		if (lastTimeSeeked+1000<System.currentTimeMillis()) {
 			final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 			sb.setMax(currentlyPlayingSong.getSong().getLength());
 			sb.setProgress((int) currentlyPlayingSong.getElapsedTime());

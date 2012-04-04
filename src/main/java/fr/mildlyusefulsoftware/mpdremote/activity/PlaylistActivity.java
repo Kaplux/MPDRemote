@@ -28,7 +28,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		MPDListener {
 
 	private Song selectedSong = null;
-	long lastTimeSeeked=0;
+	long lastTimeSeeked = 0;
 	private final List<Song> songsInPlaylist = new ArrayList<Song>();
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -55,9 +55,8 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 
 			@Override
 			public void onClick(View v) {
-				if (selectedSong != null) {
-					mpd.playOrPauseSong(selectedSong);
-				}
+				mpd.playOrPauseSong(selectedSong);
+				selectedSong=null;
 			}
 		});
 
@@ -98,7 +97,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
 				lastTimeSeeked = System.currentTimeMillis();
-				
+				mpd.seek(progress);
 			}
 		});
 	}
@@ -123,18 +122,29 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	@Override
 	public void currentlyPlayingSongChanged(
 			final CurrentlyPlayingSong currentlyPlayingSong) {
-		if (lastTimeSeeked+1000<System.currentTimeMillis()) {
+		if (lastTimeSeeked + 1000 < System.currentTimeMillis()) {
 			final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 			sb.setMax(currentlyPlayingSong.getSong().getLength());
 			sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
 		}
-		Button playButton = (Button) findViewById(R.id.playButton);
+		final Button playButton = (Button) findViewById(R.id.playButton);
 		if (mpd != null && mpd.isPlaying()) {
-			playButton.setBackgroundDrawable(getResources().getDrawable(
-					android.R.drawable.ic_media_pause));
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					// playButton.setBackgroundDrawable(getResources().getDrawable(
+					// android.R.drawable.ic_media_pause));
+				}
+			});
+
 		} else {
-			playButton.setBackgroundDrawable(getResources().getDrawable(
-					android.R.drawable.ic_media_play));
+			runOnUiThread(new Runnable() {
+				@Override
+				public void run() {
+					// playButton.setBackgroundDrawable(getResources().getDrawable(
+					// android.R.drawable.ic_media_play));
+				}
+			});
 		}
 	}
 

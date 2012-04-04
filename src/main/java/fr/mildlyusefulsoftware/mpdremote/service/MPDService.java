@@ -87,7 +87,7 @@ public class MPDService implements
 						Thread th = new Thread(monitor);
 						th.start();
 						connectionChanged(connected);
-						Log.d(MPDRemoteUtils.TAG,"connected !");
+						Log.d(MPDRemoteUtils.TAG, "connected !");
 					} catch (Exception e) {
 						Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 						try {
@@ -121,23 +121,27 @@ public class MPDService implements
 	}
 
 	public void playOrPauseSong(Song s) {
-		if (s != null) {
-			MPDSong mpdSong = new MPDSong();
-			mpdSong.setId(s.getId());
-			try {
-				if (mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
-					mpd.getMPDPlayer().pause();
-				} else {
-					mpd.getMPDPlayer().playId(mpdSong);
-				}
-			} catch (MPDPlayerException e) {
-				Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-			} catch (MPDConnectionException e) {
-				handleMPDConnectionException(e);
-			} catch (MPDResponseException e) {
-				Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		
+		try {
+			MPDSong currentSong = mpd.getMPDPlayer().getCurrentSong();
+			boolean newSongToPlay = s!=null && (currentSong==null || (currentSong!=null && s.getId()!=currentSong.getId()));
+			if (!newSongToPlay && mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
+				mpd.getMPDPlayer().pause();
+			} else if (s != null) {
+				MPDSong mpdSong = new MPDSong();
+				mpdSong.setId(s.getId());
+				mpd.getMPDPlayer().playId(mpdSong);
+			} else {
+				mpd.getMPDPlayer().play();
 			}
+		} catch (MPDPlayerException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		} catch (MPDConnectionException e) {
+			handleMPDConnectionException(e);
+		} catch (MPDResponseException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 		}
+
 	}
 
 	public void playPreviousSong() {
@@ -273,10 +277,11 @@ public class MPDService implements
 	public boolean isConnected() {
 		return connected;
 	}
-	
+
 	public boolean isPaused() {
 		try {
-			return MPDPlayer.PlayerStatus.STATUS_PAUSED== mpd.getMPDPlayer().getStatus();
+			return MPDPlayer.PlayerStatus.STATUS_PAUSED == mpd.getMPDPlayer()
+					.getStatus();
 		} catch (MPDResponseException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 		} catch (MPDConnectionException e) {
@@ -284,10 +289,11 @@ public class MPDService implements
 		}
 		return true;
 	}
-	
+
 	public boolean isPlaying() {
 		try {
-			return MPDPlayer.PlayerStatus.STATUS_PLAYING== mpd.getMPDPlayer().getStatus();
+			return MPDPlayer.PlayerStatus.STATUS_PLAYING == mpd.getMPDPlayer()
+					.getStatus();
 		} catch (MPDResponseException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 		} catch (MPDConnectionException e) {

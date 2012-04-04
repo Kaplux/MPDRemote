@@ -32,7 +32,7 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 		intent = new Intent().setClass(this, PlaylistActivity.class);
 		spec = tabHost
 				.newTabSpec("playlist")
-				.setIndicator("PlayList",
+				.setIndicator("",
 						res.getDrawable(android.R.drawable.ic_btn_speak_now))
 				.setContent(intent);
 		tabHost.addTab(spec);
@@ -40,7 +40,7 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 		intent = new Intent().setClass(this, SongLibraryActivity.class);
 		spec = tabHost
 				.newTabSpec("library")
-				.setIndicator("Library",
+				.setIndicator("",
 						res.getDrawable(android.R.drawable.ic_menu_search))
 				.setContent(intent);
 		tabHost.addTab(spec);

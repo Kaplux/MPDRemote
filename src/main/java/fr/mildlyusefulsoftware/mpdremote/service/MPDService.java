@@ -11,6 +11,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bff.javampd.MPD;
 import org.bff.javampd.MPDPlayer;
+import org.bff.javampd.events.ConnectionChangeEvent;
+import org.bff.javampd.events.ConnectionChangeListener;
 import org.bff.javampd.events.PlayerBasicChangeEvent;
 import org.bff.javampd.events.PlayerBasicChangeListener;
 import org.bff.javampd.events.PlaylistBasicChangeEvent;
@@ -34,37 +36,71 @@ import fr.mildlyusefulsoftware.mpdremote.util.MPDRemoteUtils;
 
 public class MPDService implements
 		org.bff.javampd.events.PlaylistBasicChangeListener,
-		PlayerBasicChangeListener, TrackPositionChangeListener {
+		PlayerBasicChangeListener, TrackPositionChangeListener,
+		ConnectionChangeListener {
 
+	private static MPDService instance;
 	private MPD mpd;
 	private List<MPDListener> MPDListeners = new ArrayList<MPDListener>();
+	private boolean connected;
+	private Context context;
 
-	public MPDService(Context context) {
-
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(context);
-		String portString = prefs.getString("mpd_port_preference", "6600");
-		if (!NumberUtils.isNumber(portString)) {
-			portString = "6600";
+	public static MPDService getInstance(Context context) {
+		if (instance == null) {
+			instance = new MPDService(context);
 		}
-		String hostname = prefs.getString("mpd_host_preference", "localhost");
-		connect(portString, hostname);
+		return instance;
 	}
 
-	public void connect(String portString, String hostname) {
-		try {
-			mpd = connect(hostname, Integer.valueOf(portString));
-			MPDStandAloneMonitor monitor = new MPDStandAloneMonitor(mpd, 1000);
-			monitor.addPlaylistChangeListener(this);
-			monitor.addPlayerChangeListener(this);
-			monitor.addTrackPositionChangeListener(this);
-			Thread th = new Thread(monitor);
-			th.start();
-		} catch (UnknownHostException e) {
-			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
+	private MPDService(Context context) {
+		this.context = context;
+		launchConnectThread();
+	}
+
+	public void launchConnectThread() {
+		Log.d(MPDRemoteUtils.TAG, "launching connect thread");
+		final MPDService mpdService = this;
+		setConnected(false);
+		Thread t = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				while (!connected) {
+					try {
+						SharedPreferences prefs = PreferenceManager
+								.getDefaultSharedPreferences(context);
+						String portString = prefs.getString(
+								"mpd_port_preference", "6600");
+						if (!NumberUtils.isNumber(portString)) {
+							portString = "6600";
+						}
+						final String hostname = prefs.getString(
+								"mpd_host_preference", "localhost");
+						mpd = connect(hostname, Integer.valueOf(portString));
+						connected = true;
+						MPDStandAloneMonitor monitor = new MPDStandAloneMonitor(
+								mpd, 500);
+						monitor.addPlaylistChangeListener(mpdService);
+						monitor.addPlayerChangeListener(mpdService);
+						monitor.addTrackPositionChangeListener(mpdService);
+						monitor.addConnectionChangeListener(mpdService);
+						Thread th = new Thread(monitor);
+						th.start();
+						connectionChanged(connected);
+						Log.d(MPDRemoteUtils.TAG,"connected !");
+					} catch (Exception e) {
+						Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+						try {
+							Thread.sleep(2000);
+						} catch (InterruptedException f) {
+							Log.e(MPDRemoteUtils.TAG, f.getMessage(), f);
+						}
+					}
+
+				}
+			}
+		});
+		t.start();
 	}
 
 	private List<Song> getCurrentPlayList() {
@@ -89,9 +125,9 @@ public class MPDService implements
 			MPDSong mpdSong = new MPDSong();
 			mpdSong.setId(s.getId());
 			try {
-				if (mpd.getMPDPlayer().getStatus() ==MPDPlayer.PlayerStatus.STATUS_PLAYING){
+				if (mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
 					mpd.getMPDPlayer().pause();
-				}else{
+				} else {
 					mpd.getMPDPlayer().playId(mpdSong);
 				}
 			} catch (MPDPlayerException e) {
@@ -103,8 +139,8 @@ public class MPDService implements
 			}
 		}
 	}
-	
-	public void playPreviousSong(){
+
+	public void playPreviousSong() {
 		try {
 			mpd.getMPDPlayer().playPrev();
 		} catch (MPDPlayerException e) {
@@ -113,8 +149,8 @@ public class MPDService implements
 			handleMPDConnectionException(e);
 		}
 	}
-	
-	public void playNextSong(){
+
+	public void playNextSong() {
 		try {
 			mpd.getMPDPlayer().playNext();
 		} catch (MPDPlayerException e) {
@@ -198,6 +234,9 @@ public class MPDService implements
 
 	private void handleMPDConnectionException(MPDConnectionException e) {
 		Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		connected = false;
+		connectionChanged(connected);
+		launchConnectThread();
 	}
 
 	@Override
@@ -223,6 +262,28 @@ public class MPDService implements
 	@Override
 	public void trackPositionChanged(TrackPositionChangeEvent event) {
 		playerBasicChange(null);
+	}
+
+	public void connectionChanged(boolean connected) {
+		for (MPDListener p : MPDListeners) {
+			p.connectionChanged(connected);
+		}
+	}
+
+	public boolean isConnected() {
+		return connected;
+	}
+
+	public void setConnected(boolean connected) {
+		this.connected = connected;
+	}
+
+	@Override
+	public void connectionChangeEventReceived(ConnectionChangeEvent event) {
+		Log.d(MPDRemoteUtils.TAG, "cnx changed");
+		setConnected(mpd != null && mpd.isConnected());
+		connectionChanged(isConnected());
+		launchConnectThread();
 	}
 
 }

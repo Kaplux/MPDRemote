@@ -19,6 +19,7 @@ public class SongLibraryActivity extends Activity {
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		mpd=MPDService.getInstance(this);
 		setContentView(R.layout.song_library_layout);
 		final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
 		registerForContextMenu(songLibraryView);

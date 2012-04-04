@@ -9,4 +9,5 @@ public interface MPDListener {
 	
 	void playListChanged(List<Song> playList);
 	void currentlyPlayingSongChanged(CurrentlyPlayingSong currentlyPlayingSong);
+	void connectionChanged(boolean connected);
 }

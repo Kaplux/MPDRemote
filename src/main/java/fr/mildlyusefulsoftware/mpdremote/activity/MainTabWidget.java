@@ -21,7 +21,7 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mpd=new MPDService(this);
+		mpd=MPDService.getInstance(this);
 		setContentView(R.layout.tabs_layout);
 
 		Resources res = getResources(); // Resource object to get Drawables
@@ -72,5 +72,11 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 	public void playListChanged(List<Song> playList) {
 		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	public void connectionChanged(boolean connected) {
+		// TODO Auto-generated method stub
+		
 	}
 }

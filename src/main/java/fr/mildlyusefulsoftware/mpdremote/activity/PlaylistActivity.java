@@ -3,14 +3,7 @@ package fr.mildlyusefulsoftware.mpdremote.activity;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.math.NumberUtils;
-
-import android.app.Activity;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -30,18 +23,16 @@ import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
 import fr.mildlyusefulsoftware.mpdremote.service.MPDListener;
-import fr.mildlyusefulsoftware.mpdremote.service.MPDService;
 
-public class PlaylistActivity extends Activity implements MPDListener,
-		OnSharedPreferenceChangeListener {
+public class PlaylistActivity extends AbstractMPDActivity implements
+		MPDListener {
 
 	private Song selectedSong = null;
 	private final List<Song> songsInPlaylist = new ArrayList<Song>();
-	private MPDService mpd;
+	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		mpd=new MPDService(this);
 		requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		setContentView(R.layout.playlist_layout);
 		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
@@ -49,6 +40,8 @@ public class PlaylistActivity extends Activity implements MPDListener,
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
 		registerForContextMenu(playlistView);
 		playlistView.setAdapter(new PlaylistAdapter(this, songsInPlaylist));
+		setEnabled(mpd.isConnected());
+
 		playlistView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> myAdapter, View myView,
 					int myItemInt, long mylng) {
@@ -67,49 +60,50 @@ public class PlaylistActivity extends Activity implements MPDListener,
 				}
 			}
 		});
-		
+
 		Button previousButton = (Button) findViewById(R.id.previousSongButton);
 		previousButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-					mpd.playPreviousSong();
+				mpd.playPreviousSong();
 			}
 		});
-		
+
 		Button nextButton = (Button) findViewById(R.id.nextSongButton);
 		nextButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-					mpd.playNextSong();
+				mpd.playNextSong();
 			}
 		});
-		
-		
-		final SeekBar sb=(SeekBar) findViewById(R.id.playlistSeekbar);
+
+		final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 		sb.setOnSeekBarChangeListener(new OnSeekBarChangeListener() {
-			
+
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-			//	mpd.seek(progress);
-				
+				// mpd.seek(progress);
+
 			}
 		});
 	}
+
+	
 
 	@Override
 	public void playListChanged(List<Song> playList) {
@@ -131,9 +125,9 @@ public class PlaylistActivity extends Activity implements MPDListener,
 	@Override
 	public void currentlyPlayingSongChanged(
 			final CurrentlyPlayingSong currentlyPlayingSong) {
-		final SeekBar sb=(SeekBar) findViewById(R.id.playlistSeekbar);
+		final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 		sb.setMax(currentlyPlayingSong.getSong().getLength());
-		sb.setProgress((int)currentlyPlayingSong.getElapsedTime());
+		sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
 
 	}
 
@@ -171,28 +165,8 @@ public class PlaylistActivity extends Activity implements MPDListener,
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.preferencesOptionMenu:
-			Intent intent = new Intent(getApplicationContext(),
-					MPDRemotePreferencesActivity.class);
-			startActivity(intent);
-			return true;
-		default:
-			return super.onOptionsItemSelected(item);
-		}
-	}
-
-	@Override
-	public void onSharedPreferenceChanged(SharedPreferences arg0, String arg1) {
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		String portString = prefs.getString("mpd_port_preference", "6600");
-		if (!NumberUtils.isNumber(portString)) {
-			portString = "6600";
-		}
-		String hostname = prefs.getString("mpd_host_preference", "localhost");
-		mpd.connect(portString, hostname);
+	public void connectionChanged(boolean connected) {
+		setEnabled(connected);
 	}
 
 }

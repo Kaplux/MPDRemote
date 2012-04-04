@@ -36,7 +36,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		setContentView(R.layout.playlist_layout);
 		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
-		mpd.addPlaylistChangeListener(this);
+		mpd.addMPDListener(this);
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
 		registerForContextMenu(playlistView);
 		playlistView.setAdapter(new PlaylistAdapter(this, songsInPlaylist));

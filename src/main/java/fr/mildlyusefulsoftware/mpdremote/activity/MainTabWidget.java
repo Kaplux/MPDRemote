@@ -48,7 +48,7 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 		tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 35;
 		tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 35;
 		tabHost.setCurrentTab(0);
-		mpd.addPlaylistChangeListener(this);
+		mpd.addMPDListener(this);
 
 	}
 
@@ -79,4 +79,5 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 		// TODO Auto-generated method stub
 		
 	}
+
 }

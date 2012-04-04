@@ -205,7 +205,7 @@ public class MPDService implements
 		return new MPD(ip, port);
 	}
 
-	public void addPlaylistChangeListener(MPDListener p) {
+	public void addMPDListener(MPDListener p) {
 		MPDListeners.add(p);
 	}
 

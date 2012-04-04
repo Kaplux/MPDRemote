@@ -128,7 +128,12 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 		sb.setMax(currentlyPlayingSong.getSong().getLength());
 		sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
-
+		Button playButton = (Button) findViewById(R.id.playButton);
+		if (mpd!=null && mpd.isPlaying()){
+			playButton.setBackgroundDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
+		}else{
+			playButton.setBackgroundDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+		}
 	}
 
 	@Override

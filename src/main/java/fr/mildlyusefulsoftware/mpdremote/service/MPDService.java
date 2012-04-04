@@ -273,6 +273,28 @@ public class MPDService implements
 	public boolean isConnected() {
 		return connected;
 	}
+	
+	public boolean isPaused() {
+		try {
+			return MPDPlayer.PlayerStatus.STATUS_PAUSED== mpd.getMPDPlayer().getStatus();
+		} catch (MPDResponseException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		} catch (MPDConnectionException e) {
+			handleMPDConnectionException(e);
+		}
+		return true;
+	}
+	
+	public boolean isPlaying() {
+		try {
+			return MPDPlayer.PlayerStatus.STATUS_PLAYING== mpd.getMPDPlayer().getStatus();
+		} catch (MPDResponseException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		} catch (MPDConnectionException e) {
+			handleMPDConnectionException(e);
+		}
+		return false;
+	}
 
 	public void setConnected(boolean connected) {
 		this.connected = connected;

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -23,13 +24,14 @@ import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
 import fr.mildlyusefulsoftware.mpdremote.service.MPDListener;
+import fr.mildlyusefulsoftware.mpdremote.util.MPDRemoteUtils;
 
 public class PlaylistActivity extends AbstractMPDActivity implements
 		MPDListener {
 
 	private Song selectedSong = null;
+	boolean seeking = false;
 	private final List<Song> songsInPlaylist = new ArrayList<Song>();
-	
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -97,13 +99,24 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				// mpd.seek(progress);
-
+				seeking = true;
+				mpd.seek(progress);
+				new Thread(new Runnable() {
+					
+					@Override
+					public void run() {
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							Log.e(MPDRemoteUtils.TAG,e.getMessage(),e);
+						}
+						seeking = false;
+					}
+				});
+				
 			}
 		});
 	}
-
-	
 
 	@Override
 	public void playListChanged(List<Song> playList) {
@@ -125,14 +138,18 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	@Override
 	public void currentlyPlayingSongChanged(
 			final CurrentlyPlayingSong currentlyPlayingSong) {
-		final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
-		sb.setMax(currentlyPlayingSong.getSong().getLength());
-		sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
+		if (!seeking) {
+			final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
+			sb.setMax(currentlyPlayingSong.getSong().getLength());
+			sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
+		}
 		Button playButton = (Button) findViewById(R.id.playButton);
-		if (mpd!=null && mpd.isPlaying()){
-			playButton.setBackgroundDrawable(getResources().getDrawable(android.R.drawable.ic_media_pause));
-		}else{
-			playButton.setBackgroundDrawable(getResources().getDrawable(android.R.drawable.ic_media_play));
+		if (mpd != null && mpd.isPlaying()) {
+			playButton.setBackgroundDrawable(getResources().getDrawable(
+					android.R.drawable.ic_media_pause));
+		} else {
+			playButton.setBackgroundDrawable(getResources().getDrawable(
+					android.R.drawable.ic_media_play));
 		}
 	}
 

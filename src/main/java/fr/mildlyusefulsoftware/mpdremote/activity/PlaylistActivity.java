@@ -38,8 +38,11 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
 		mpd.addMPDListener(this);
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
+		
 		registerForContextMenu(playlistView);
-		playlistView.setAdapter(new PlaylistAdapter(this, songsInPlaylist));
+		final PlaylistAdapter playlistAdapter=new PlaylistAdapter(this, songsInPlaylist);
+		
+		playlistView.setAdapter(playlistAdapter);
 		setEnabled(mpd.isConnected());
 
 		playlistView.setOnItemClickListener(new OnItemClickListener() {

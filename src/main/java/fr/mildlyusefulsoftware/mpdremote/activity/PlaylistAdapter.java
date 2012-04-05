@@ -40,5 +40,6 @@ class PlaylistAdapter extends ArrayAdapter<Song> {
 	public boolean isEnabled(int position) {
 		return true;
 	}
+	
 
 }

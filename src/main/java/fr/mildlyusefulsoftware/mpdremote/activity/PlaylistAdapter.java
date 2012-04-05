@@ -14,17 +14,19 @@ import fr.mildlyusefulsoftware.mpdremote.bo.Song;
 class PlaylistAdapter extends ArrayAdapter<Song> {
 
 	Context context;
+	int itemLayout;
 
-	public PlaylistAdapter(Context context, List<Song> objects) {
+	public PlaylistAdapter(Context context, List<Song> objects,int itemLayout) {
 		super(context, 0, objects);
 		this.context = context;
+		this.itemLayout=itemLayout;
 	}
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		LayoutInflater layoutInflater = (LayoutInflater) getContext()
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		View view = layoutInflater.inflate(R.layout.playlist_item_layout, null);
+		View view = layoutInflater.inflate(itemLayout, null);
 		if (!isEmpty()) {
 			Song song = getItem(position);
 			TextView songTitleView = (TextView) view

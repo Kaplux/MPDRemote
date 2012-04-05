@@ -27,23 +27,36 @@ import fr.mildlyusefulsoftware.mpdremote.service.MPDListener;
 public class PlaylistActivity extends AbstractMPDActivity implements
 		MPDListener {
 
+	private static final String SELECTED_SONG = "SELECTED_SONG";
+	private static final String PLAYLIST = "PLAYLIST";
 	private Song selectedSong = null;
 	long lastTimeSeeked = 0;
-	private final List<Song> songsInPlaylist = new ArrayList<Song>();
+	PlaylistAdapter playlistAdapter;
+	private final ArrayList<Song> songsInPlaylist = new ArrayList<Song>();
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		setContentView(R.layout.playlist_layout);
 		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
-		mpd.addMPDListener(this);
+		setEnabled(false);
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
-		
 		registerForContextMenu(playlistView);
-		final PlaylistAdapter playlistAdapter=new PlaylistAdapter(this, songsInPlaylist);
-		
+		playlistAdapter=new PlaylistAdapter(this, songsInPlaylist,R.layout.playlist_item_layout);
 		playlistView.setAdapter(playlistAdapter);
+		if (savedInstanceState!=null){
+			List<Song> playListContent=savedInstanceState.getParcelableArrayList(PLAYLIST);
+			songsInPlaylist.clear();
+			songsInPlaylist.addAll(playListContent);
+			Song savedSelectedSong=savedInstanceState.getParcelable(SELECTED_SONG);
+			if (savedSelectedSong!=null){
+				selectSong(savedSelectedSong);
+			}
+		}
+		
+		mpd.addMPDListener(this);
 		setEnabled(mpd.isConnected());
+		
 
 		playlistView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> myAdapter, View myView,
@@ -130,25 +143,6 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 			sb.setMax(currentlyPlayingSong.getSong().getLength());
 			sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
 		}
-		final Button playButton = (Button) findViewById(R.id.playButton);
-		if (mpd != null && mpd.isPlaying()) {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					// playButton.setBackgroundDrawable(getResources().getDrawable(
-					// android.R.drawable.ic_media_pause));
-				}
-			});
-
-		} else {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					// playButton.setBackgroundDrawable(getResources().getDrawable(
-					// android.R.drawable.ic_media_play));
-				}
-			});
-		}
 	}
 
 	@Override
@@ -187,6 +181,19 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	@Override
 	public void connectionChanged(boolean connected) {
 		setEnabled(connected);
+	}
+	
+	@Override
+	public void onSaveInstanceState(Bundle savedInstanceState) {
+		savedInstanceState.putParcelableArrayList(PLAYLIST, songsInPlaylist);
+		savedInstanceState.putParcelable(SELECTED_SONG, selectedSong);
+		super.onSaveInstanceState(savedInstanceState);
+	}
+	
+	private void selectSong(Song s){
+		selectedSong=s;
+		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
+		playlistView.setItemChecked(playlistAdapter.getPosition(selectedSong),true);
 	}
 
 }

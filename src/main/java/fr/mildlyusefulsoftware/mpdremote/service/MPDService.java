@@ -11,6 +11,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bff.javampd.MPD;
 import org.bff.javampd.MPDPlayer;
+import org.bff.javampd.MPDDatabase.ScopeType;
 import org.bff.javampd.events.ConnectionChangeEvent;
 import org.bff.javampd.events.ConnectionChangeListener;
 import org.bff.javampd.events.PlayerBasicChangeEvent;
@@ -121,11 +122,14 @@ public class MPDService implements
 	}
 
 	public void playOrPauseSong(Song s) {
-		
+
 		try {
 			MPDSong currentSong = mpd.getMPDPlayer().getCurrentSong();
-			boolean newSongToPlay = s!=null && (currentSong==null || (currentSong!=null && s.getId()!=currentSong.getId()));
-			if (!newSongToPlay && mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
+			boolean newSongToPlay = s != null
+					&& (currentSong == null || (currentSong != null && s
+							.getId() != currentSong.getId()));
+			if (!newSongToPlay
+					&& mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
 				mpd.getMPDPlayer().pause();
 			} else if (s != null) {
 				MPDSong mpdSong = new MPDSong();
@@ -221,11 +225,15 @@ public class MPDService implements
 		}
 	}
 
-	public List<Song> getSongsInLibrary() {
+	public List<Song> getSongsInLibrary(String searchFilter) {
 		List<Song> songs = new ArrayList<Song>();
 		try {
-			Collection<MPDSong> mpdSongs = mpd.getMPDDatabase().listAllSongs();
-
+			Collection<MPDSong> mpdSongs=new ArrayList<MPDSong>();;
+			if (StringUtils.isEmpty(searchFilter)) {
+				mpdSongs.addAll(mpd.getMPDDatabase().listAllSongs());
+			}else{
+				mpdSongs.addAll(mpd.getMPDDatabase().search(ScopeType.ANY, searchFilter));
+			}
 			CollectionUtils.collect(mpdSongs, new MPDSongToSongTransformer(),
 					songs);
 		} catch (MPDDatabaseException e) {
@@ -312,6 +320,13 @@ public class MPDService implements
 		setConnected(mpd != null && mpd.isConnected());
 		connectionChanged(isConnected());
 		launchConnectThread();
+	}
+
+	public void addSongToPlayList(List<Song> songsToAdd) {
+		for (Song s:songsToAdd){
+			addSongToPlayList(s);
+		}
+		
 	}
 
 }

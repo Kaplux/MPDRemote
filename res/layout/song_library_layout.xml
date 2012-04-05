@@ -4,10 +4,53 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+          android:layout_marginBottom="20dp" >
+
+        <EditText
+            android:id="@+id/song_library_search_filter_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.8" >
+
+            <requestFocus />
+        </EditText>
+
+        <ImageButton
+            android:id="@+id/song_library_search"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@android:drawable/ic_menu_search" />
+
+        <ImageButton
+            android:id="@+id/song_library_clear_search"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@android:drawable/ic_menu_delete" />
+    </LinearLayout>
+
     <ListView
         android:id="@+id/songLibraryView"
         android:layout_width="fill_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:choiceMode="multipleChoice" >
     </ListView>
+
+    <LinearLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" 
+        android:gravity="right"
+        android:layout_marginTop="20dp"
+        >
+
+        <ImageButton
+            android:id="@+id/song_library_add"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@android:drawable/ic_menu_add" />
+    </LinearLayout>
 
 </LinearLayout>

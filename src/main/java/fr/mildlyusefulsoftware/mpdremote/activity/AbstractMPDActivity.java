@@ -1,9 +1,5 @@
 package fr.mildlyusefulsoftware.mpdremote.activity;
 
-import org.apache.commons.lang.math.NumberUtils;
-
-import fr.mildlyusefulsoftware.mpdremote.R;
-import fr.mildlyusefulsoftware.mpdremote.service.MPDService;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,6 +9,8 @@ import android.preference.PreferenceManager;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import fr.mildlyusefulsoftware.mpdremote.R;
+import fr.mildlyusefulsoftware.mpdremote.service.MPDService;
 
 public abstract class AbstractMPDActivity extends Activity implements
 		OnSharedPreferenceChangeListener {
@@ -34,13 +32,6 @@ public abstract class AbstractMPDActivity extends Activity implements
 
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences arg0, String arg1) {
-		SharedPreferences prefs = PreferenceManager
-				.getDefaultSharedPreferences(this);
-		String portString = prefs.getString("mpd_port_preference", "6600");
-		if (!NumberUtils.isNumber(portString)) {
-			portString = "6600";
-		}
-		String hostname = prefs.getString("mpd_host_preference", "localhost");
 		setEnabled(false);
 		mpd.launchConnectThread();
 	}

@@ -10,8 +10,12 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView.AdapterContextMenuInfo;
+import android.widget.CheckedTextView;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.TextView;
 import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
@@ -23,6 +27,7 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 		MPDListener {
 
 	private MPDService mpd;
+	private String searchFilter = "";
 	private final List<Song> songLibrary = new ArrayList<Song>();
 
 	public void onCreate(Bundle savedInstanceState) {
@@ -32,8 +37,46 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 		setContentView(R.layout.song_library_layout);
 		final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
 		registerForContextMenu(songLibraryView);
-		songLibraryView.setAdapter(new PlaylistAdapter(this, songLibrary));
-		if (mpd.isConnected()){
+		final PlaylistAdapter songLibraryAdapter=new PlaylistAdapter(this, songLibrary,
+				R.layout.song_library_item_layout);
+		songLibraryView.setAdapter(songLibraryAdapter);
+
+		final ImageButton setFilterButton = (ImageButton) findViewById(R.id.song_library_search);
+		setFilterButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final TextView filterTextView = (TextView) findViewById(R.id.song_library_search_filter_text);
+				searchFilter = filterTextView.getText().toString();
+				executeSongSearch();
+			}
+		});
+
+		final ImageButton clearFilterButton = (ImageButton) findViewById(R.id.song_library_clear_search);
+		clearFilterButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				final TextView filterTextView = (TextView) findViewById(R.id.song_library_search_filter_text);
+				filterTextView.setText("");
+				searchFilter = "";
+				executeSongSearch();
+			}
+		});
+
+		final ImageButton addToPlaylistButton = (ImageButton) findViewById(R.id.song_library_add);
+		addToPlaylistButton.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				List<Song> songsToAdd = new ArrayList<Song>();
+				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
+					if (songLibraryView.getCheckedItemPositions().get(i)){
+						songsToAdd.add(songLibraryAdapter.getItem(i));
+					}
+				}
+				mpd.addSongToPlayList(songsToAdd);
+			}
+		});
+
+		if (mpd.isConnected()) {
 			connectionChanged(true);
 		}
 
@@ -81,17 +124,26 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 	@Override
 	public synchronized void connectionChanged(final boolean connected) {
 		Log.d(MPDRemoteUtils.TAG, "songlib -> cnx changed");
+		executeSongSearch();
+		setEnabled(connected);
+	}
+
+	private void executeSongSearch() {
 		songLibrary.clear();
-		songLibrary.addAll(mpd.getSongsInLibrary());
+		songLibrary.addAll(mpd.getSongsInLibrary(searchFilter));
 		this.runOnUiThread(new Runnable() {
 
 			@Override
 			public void run() {
 
 				final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
+				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
+					songLibraryView.getCheckedItemPositions().delete(i);
+					
+				}
 				((PlaylistAdapter) songLibraryView.getAdapter())
 						.notifyDataSetChanged();
-				setEnabled(connected);
+
 			}
 		});
 

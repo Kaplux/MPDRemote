@@ -3,7 +3,7 @@
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@android:drawable/list_selector_background" >
+    android:background="@drawable/playlist_statelist" >
 
     <CheckedTextView
         android:id="@+id/songTitle"

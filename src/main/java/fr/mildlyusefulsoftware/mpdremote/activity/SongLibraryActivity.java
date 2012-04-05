@@ -3,6 +3,7 @@ package fr.mildlyusefulsoftware.mpdremote.activity;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -37,8 +38,8 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 		setContentView(R.layout.song_library_layout);
 		final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
 		registerForContextMenu(songLibraryView);
-		final PlaylistAdapter songLibraryAdapter=new PlaylistAdapter(this, songLibrary,
-				R.layout.song_library_item_layout);
+		final PlaylistAdapter songLibraryAdapter = new PlaylistAdapter(this,
+				songLibrary, R.layout.song_library_item_layout);
 		songLibraryView.setAdapter(songLibraryAdapter);
 
 		final ImageButton setFilterButton = (ImageButton) findViewById(R.id.song_library_search);
@@ -68,7 +69,7 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 			public void onClick(View v) {
 				List<Song> songsToAdd = new ArrayList<Song>();
 				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
-					if (songLibraryView.getCheckedItemPositions().get(i)){
+					if (songLibraryView.getCheckedItemPositions().get(i)) {
 						songsToAdd.add(songLibraryAdapter.getItem(i));
 					}
 				}
@@ -129,24 +130,25 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 	}
 
 	private void executeSongSearch() {
-		songLibrary.clear();
-		songLibrary.addAll(mpd.getSongsInLibrary(searchFilter));
-		this.runOnUiThread(new Runnable() {
+		new AsyncTask<Void, Void, List<Song>>() {
 
 			@Override
-			public void run() {
+			protected List<Song> doInBackground(Void... params) {
+				return mpd.getSongsInLibrary(searchFilter);
+			}
 
+			@Override
+			protected void onPostExecute(List<Song> result) {
+				songLibrary.clear();
+				songLibrary.addAll(result);
 				final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
 				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
 					songLibraryView.getCheckedItemPositions().delete(i);
-					
 				}
 				((PlaylistAdapter) songLibraryView.getAdapter())
 						.notifyDataSetChanged();
-
 			}
-		});
-
+		}.execute();
 	}
 
 }

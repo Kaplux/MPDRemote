@@ -30,7 +30,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	private static final String SELECTED_SONG = "SELECTED_SONG";
 	private static final String PLAYLIST = "PLAYLIST";
 	private Song selectedSong = null;
-	long lastTimeSeeked = 0;
+	boolean currentlySeeking;
 	PlaylistAdapter playlistAdapter;
 	private final ArrayList<Song> songsInPlaylist = new ArrayList<Song>();
 
@@ -42,21 +42,23 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		setEnabled(false);
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
 		registerForContextMenu(playlistView);
-		playlistAdapter=new PlaylistAdapter(this, songsInPlaylist,R.layout.playlist_item_layout);
+		playlistAdapter = new PlaylistAdapter(this, songsInPlaylist,
+				R.layout.playlist_item_layout);
 		playlistView.setAdapter(playlistAdapter);
-		if (savedInstanceState!=null){
-			List<Song> playListContent=savedInstanceState.getParcelableArrayList(PLAYLIST);
+		if (savedInstanceState != null) {
+			List<Song> playListContent = savedInstanceState
+					.getParcelableArrayList(PLAYLIST);
 			songsInPlaylist.clear();
 			songsInPlaylist.addAll(playListContent);
-			Song savedSelectedSong=savedInstanceState.getParcelable(SELECTED_SONG);
-			if (savedSelectedSong!=null){
+			Song savedSelectedSong = savedInstanceState
+					.getParcelable(SELECTED_SONG);
+			if (savedSelectedSong != null) {
 				selectSong(savedSelectedSong);
 			}
 		}
-		
+
 		mpd.addMPDListener(this);
 		setEnabled(mpd.isConnected());
-		
 
 		playlistView.setOnItemClickListener(new OnItemClickListener() {
 			public void onItemClick(AdapterView<?> myAdapter, View myView,
@@ -72,7 +74,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 			@Override
 			public void onClick(View v) {
 				mpd.playOrPauseSong(selectedSong);
-				selectedSong=null;
+				selectedSong = null;
 			}
 		});
 
@@ -99,21 +101,20 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 
 			@Override
 			public void onStopTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-
+				currentlySeeking = false;
 			}
 
 			@Override
 			public void onStartTrackingTouch(SeekBar seekBar) {
-				// TODO Auto-generated method stub
-
+				currentlySeeking = true;
 			}
 
 			@Override
 			public void onProgressChanged(SeekBar seekBar, int progress,
 					boolean fromUser) {
-				lastTimeSeeked = System.currentTimeMillis();
-				mpd.seek(progress);
+				if (currentlySeeking) {
+					mpd.seek(progress);
+				}
 			}
 		});
 	}
@@ -138,7 +139,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	@Override
 	public void currentlyPlayingSongChanged(
 			final CurrentlyPlayingSong currentlyPlayingSong) {
-		if (lastTimeSeeked + 1000 < System.currentTimeMillis()) {
+		if (!currentlySeeking) {
 			final SeekBar sb = (SeekBar) findViewById(R.id.playlistSeekbar);
 			sb.setMax(currentlyPlayingSong.getSong().getLength());
 			sb.setProgress((int) currentlyPlayingSong.getElapsedTime());
@@ -182,18 +183,19 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	public void connectionChanged(boolean connected) {
 		setEnabled(connected);
 	}
-	
+
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 		savedInstanceState.putParcelableArrayList(PLAYLIST, songsInPlaylist);
 		savedInstanceState.putParcelable(SELECTED_SONG, selectedSong);
 		super.onSaveInstanceState(savedInstanceState);
 	}
-	
-	private void selectSong(Song s){
-		selectedSong=s;
+
+	private void selectSong(Song s) {
+		selectedSong = s;
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
-		playlistView.setItemChecked(playlistAdapter.getPosition(selectedSong),true);
+		playlistView.setItemChecked(playlistAdapter.getPosition(selectedSong),
+				true);
 	}
 
 }

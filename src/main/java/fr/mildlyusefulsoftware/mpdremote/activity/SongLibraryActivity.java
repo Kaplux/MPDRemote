@@ -6,14 +6,8 @@ import java.util.List;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.AdapterView.AdapterContextMenuInfo;
-import android.widget.CheckedTextView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -42,6 +36,8 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 				songLibrary, R.layout.song_library_item_layout);
 		songLibraryView.setAdapter(songLibraryAdapter);
 
+	
+		
 		final ImageButton setFilterButton = (ImageButton) findViewById(R.id.song_library_search);
 		setFilterButton.setOnClickListener(new OnClickListener() {
 			@Override
@@ -51,17 +47,8 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 				executeSongSearch();
 			}
 		});
-
-		final ImageButton clearFilterButton = (ImageButton) findViewById(R.id.song_library_clear_search);
-		clearFilterButton.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				final TextView filterTextView = (TextView) findViewById(R.id.song_library_search_filter_text);
-				filterTextView.setText("");
-				searchFilter = "";
-				executeSongSearch();
-			}
-		});
+		
+		
 
 		final ImageButton addToPlaylistButton = (ImageButton) findViewById(R.id.song_library_add);
 		addToPlaylistButton.setOnClickListener(new OnClickListener() {
@@ -83,31 +70,6 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 
 	}
 
-	@Override
-	public void onCreateContextMenu(ContextMenu menu, View v,
-			ContextMenuInfo menuInfo) {
-		super.onCreateContextMenu(menu, v, menuInfo);
-		MenuInflater inflater = getMenuInflater();
-		inflater.inflate(R.menu.song_library_list_context_menu, menu);
-	}
-
-	@Override
-	public boolean onContextItemSelected(MenuItem item) {
-
-		switch (item.getItemId()) {
-		case R.id.addSongToPlaylist:
-			final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
-			AdapterContextMenuInfo info = (AdapterContextMenuInfo) item
-					.getMenuInfo();
-			Song selectedSong = (Song) (songLibraryView
-					.getItemAtPosition(info.position));
-			mpd.addSongToPlayList(selectedSong);
-			return true;
-		default:
-			return super.onContextItemSelected(item);
-
-		}
-	}
 
 	@Override
 	public void playListChanged(List<Song> playList) {

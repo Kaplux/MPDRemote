@@ -3,7 +3,6 @@
     android:id="@+id/songTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Medium Text"
-        android:checkMark="?android:attr/listChoiceIndicatorMultiple"
+        android:checkMark="@drawable/btn_check"
         android:textAppearance="?android:attr/textAppearanceMedium" >
 </CheckedTextView>

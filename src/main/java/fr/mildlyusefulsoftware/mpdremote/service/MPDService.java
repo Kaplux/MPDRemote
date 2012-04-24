@@ -183,6 +183,7 @@ public class MPDService implements
 			MPDSong mpdSong = new MPDSong();
 			mpdSong.setId(s.getId());
 			mpdSong.setFile(s.getFilename());
+			Log.d(MPDRemoteUtils.TAG,"add song to playlist : "+s.getFilename());
 			try {
 				mpd.getMPDPlaylist().addSong(mpdSong);
 			} catch (MPDPlaylistException e) {
@@ -323,7 +324,9 @@ public class MPDService implements
 	}
 
 	public void addSongToPlayList(List<Song> songsToAdd) {
+		Log.d(MPDRemoteUtils.TAG,"add song to playlist");
 		for (Song s:songsToAdd){
+			Log.d(MPDRemoteUtils.TAG,"add song "+s.getId());
 			addSongToPlayList(s);
 		}
 		
@@ -341,7 +344,6 @@ class MPDSongToSongTransformer implements Transformer {
 		if (StringUtils.isBlank(s.getTitle())) {
 			s.setTitle(mpdSong.getFile());
 		}
-		s.setId(mpdSong.getId());
 		s.setFilename(mpdSong.getFile());
 		s.setLength(mpdSong.getLength());
 		return s;

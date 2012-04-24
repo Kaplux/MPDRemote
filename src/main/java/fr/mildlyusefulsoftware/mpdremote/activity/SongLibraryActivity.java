@@ -3,6 +3,8 @@ package fr.mildlyusefulsoftware.mpdremote.activity;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -55,12 +57,14 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 			@Override
 			public void onClick(View v) {
 				List<Song> songsToAdd = new ArrayList<Song>();
-				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
+				Log.d(MPDRemoteUtils.TAG,"nb song in lib : "+songLibraryView.getChildCount());
+				for (int i = 0; i < songLibraryView.getCount(); i++) {
 					if (songLibraryView.getCheckedItemPositions().get(i)) {
 						songsToAdd.add(songLibraryAdapter.getItem(i));
 					}
 				}
 				mpd.addSongToPlayList(songsToAdd);
+				resetCheckbox();
 			}
 		});
 
@@ -90,8 +94,20 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 		executeSongSearch();
 		setEnabled(connected);
 	}
+	
+	private void resetCheckbox(){
+		final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
+		for (int i = 0; i < songLibraryView.getCount(); i++) {
+			songLibraryView.getCheckedItemPositions().delete(i);
+		}
+		((PlaylistAdapter) songLibraryView.getAdapter())
+		.notifyDataSetChanged();
+	}
 
 	private void executeSongSearch() {
+		final Activity currentActivity = this;
+		final ProgressDialog progressDialog = ProgressDialog.show(this,
+				"Searching", "please wait", true);
 		new AsyncTask<Void, Void, List<Song>>() {
 
 			@Override
@@ -104,11 +120,8 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 				songLibrary.clear();
 				songLibrary.addAll(result);
 				final ListView songLibraryView = (ListView) findViewById(R.id.songLibraryView);
-				for (int i = 0; i < songLibraryView.getChildCount(); i++) {
-					songLibraryView.getCheckedItemPositions().delete(i);
-				}
-				((PlaylistAdapter) songLibraryView.getAdapter())
-						.notifyDataSetChanged();
+				resetCheckbox();
+				progressDialog.cancel();
 			}
 		}.execute();
 	}

@@ -47,7 +47,7 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 
 		tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 35;
 		tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 35;
-		tabHost.setEnabled(false);
+		connectionChanged(false);
 		tabHost.setCurrentTab(0);
 		mpd.addMPDListener(this);
 
@@ -77,8 +77,14 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 
 	@Override
 	public void connectionChanged(boolean connected) {
-		// TODO Auto-generated method stub
-		
+		TabHost tabHost = getTabHost(); // The activity TabHost
+		if(connected){
+			tabHost.getTabWidget().getChildAt(0).setEnabled(true);
+			tabHost.getTabWidget().getChildAt(1).setEnabled(true);
+		}else{
+			tabHost.getTabWidget().getChildAt(0).setEnabled(false);
+			tabHost.getTabWidget().getChildAt(1).setEnabled(false);
+		}
 	}
 
 }

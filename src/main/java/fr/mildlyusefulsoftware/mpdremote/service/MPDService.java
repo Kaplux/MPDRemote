@@ -282,6 +282,12 @@ public class MPDService implements
 		for (MPDListener p : MPDListeners) {
 			p.connectionChanged(connected);
 		}
+		if (connected){
+			List<Song> currentPlaylist = getCurrentPlayList();
+			for (MPDListener p : MPDListeners) {
+				p.playListChanged(currentPlaylist);
+			}
+		}
 	}
 
 	public boolean isConnected() {

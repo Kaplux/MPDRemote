@@ -126,8 +126,9 @@ public class MPDService implements
 		try {
 			MPDSong currentSong = mpd.getMPDPlayer().getCurrentSong();
 			boolean newSongToPlay = s != null
-					&& (currentSong == null || (currentSong != null && s
-							.getId() != currentSong.getId()));
+					&& (currentSong == null || s
+							.getId()!=currentSong.getId());
+			Log.d(MPDRemoteUtils.TAG, "newsongtoplay ? "+newSongToPlay);
 			if (!newSongToPlay
 					&& mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
 				mpd.getMPDPlayer().pause();
@@ -319,8 +320,11 @@ public class MPDService implements
 	public void connectionChangeEventReceived(ConnectionChangeEvent event) {
 		Log.d(MPDRemoteUtils.TAG, "cnx changed");
 		setConnected(mpd != null && mpd.isConnected());
+		Log.d(MPDRemoteUtils.TAG, "cnx changed before is connected");
 		connectionChanged(isConnected());
+		Log.d(MPDRemoteUtils.TAG, "cnx changed after is connected");
 		launchConnectThread();
+		Log.d(MPDRemoteUtils.TAG, "cnx changed after launch connect");
 	}
 
 	public void addSongToPlayList(List<Song> songsToAdd) {
@@ -340,6 +344,7 @@ class MPDSongToSongTransformer implements Transformer {
 	public Object transform(Object m) {
 		Song s = new Song();
 		MPDSong mpdSong = (MPDSong) m;
+		s.setId(mpdSong.getId());
 		s.setTitle(mpdSong.getTitle());
 		if (StringUtils.isBlank(s.getTitle())) {
 			s.setTitle(mpdSong.getFile());

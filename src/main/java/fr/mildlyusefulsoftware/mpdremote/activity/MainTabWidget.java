@@ -76,15 +76,20 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 	}
 
 	@Override
-	public void connectionChanged(boolean connected) {
-		TabHost tabHost = getTabHost(); // The activity TabHost
-		if(connected){
-			tabHost.getTabWidget().getChildAt(0).setEnabled(true);
-			tabHost.getTabWidget().getChildAt(1).setEnabled(true);
-		}else{
-			tabHost.getTabWidget().getChildAt(0).setEnabled(false);
-			tabHost.getTabWidget().getChildAt(1).setEnabled(false);
-		}
+	public void connectionChanged(final boolean connected) {
+		runOnUiThread(new Runnable(){
+			@Override
+			public void run() {
+				TabHost tabHost = getTabHost(); // The activity TabHost
+				if(connected){
+					tabHost.getTabWidget().getChildAt(0).setEnabled(true);
+					tabHost.getTabWidget().getChildAt(1).setEnabled(true);
+				}else{
+					tabHost.getTabWidget().getChildAt(0).setEnabled(false);
+					tabHost.getTabWidget().getChildAt(1).setEnabled(false);
+				}
+				}
+			});
 	}
 
 }

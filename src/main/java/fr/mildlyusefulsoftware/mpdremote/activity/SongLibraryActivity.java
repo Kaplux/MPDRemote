@@ -5,11 +5,13 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -46,6 +48,10 @@ public class SongLibraryActivity extends AbstractMPDActivity implements
 			public void onClick(View v) {
 				final TextView filterTextView = (TextView) findViewById(R.id.song_library_search_filter_text);
 				searchFilter = filterTextView.getText().toString();
+				InputMethodManager inputManager = (InputMethodManager)
+                        getSystemService(Context.INPUT_METHOD_SERVICE); 
+				inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                           InputMethodManager.HIDE_NOT_ALWAYS);
 				executeSongSearch();
 			}
 		});

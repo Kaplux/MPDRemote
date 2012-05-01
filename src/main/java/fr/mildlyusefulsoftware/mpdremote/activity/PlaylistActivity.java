@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
@@ -11,18 +12,26 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.AdapterContextMenuInfo;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
+
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+
 import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
 import fr.mildlyusefulsoftware.mpdremote.service.MPDListener;
+import fr.mildlyusefulsoftware.mpdremote.util.MPDRemoteUtils;
 
 public class PlaylistActivity extends AbstractMPDActivity implements
 		MPDListener {
@@ -33,9 +42,10 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 	boolean currentlySeeking;
 	PlaylistAdapter playlistAdapter;
 	private final ArrayList<Song> songsInPlaylist = new ArrayList<Song>();
-
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		Log.d(MPDRemoteUtils.TAG,"Playlist on create");
 		requestWindowFeature(Window.FEATURE_LEFT_ICON);
 		setContentView(R.layout.playlist_layout);
 		setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, R.drawable.icon);
@@ -46,6 +56,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 				R.layout.playlist_item_layout);
 		playlistView.setAdapter(playlistAdapter);
 		if (savedInstanceState != null) {
+			Log.d(MPDRemoteUtils.TAG,"Playlist savedinstance");
 			List<Song> playListContent = savedInstanceState
 					.getParcelableArrayList(PLAYLIST);
 			songsInPlaylist.clear();
@@ -69,7 +80,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		});
 
 		Button playButton = (Button) findViewById(R.id.playButton);
-		playButton.setOnClickListener(new OnClickListener() {
+		playButton.setOnClickListener(new OnClickListener() { 
 
 			@Override
 			public void onClick(View v) {
@@ -186,6 +197,7 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 
 	@Override
 	public void onSaveInstanceState(Bundle savedInstanceState) {
+		Log.d(MPDRemoteUtils.TAG,"save instance");
 		savedInstanceState.putParcelableArrayList(PLAYLIST, songsInPlaylist);
 		savedInstanceState.putParcelable(SELECTED_SONG, selectedSong);
 		super.onSaveInstanceState(savedInstanceState);
@@ -196,6 +208,14 @@ public class PlaylistActivity extends AbstractMPDActivity implements
 		final ListView playlistView = (ListView) findViewById(R.id.playlistView);
 		playlistView.setItemChecked(playlistAdapter.getPosition(selectedSong),
 				true);
+	}
+	
+
+
+	@Override
+	protected void onPause() {
+		Log.d(MPDRemoteUtils.TAG,"on pause");
+		super.onPause();
 	}
 
 }

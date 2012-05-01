@@ -9,6 +9,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Transformer;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.bff.javampd.MPD;
 import org.bff.javampd.MPDPlayer;
 import org.bff.javampd.MPDDatabase.ScopeType;
@@ -90,11 +91,11 @@ public class MPDService implements
 						connectionChanged(connected);
 						Log.d(MPDRemoteUtils.TAG, "connected !");
 					} catch (Exception e) {
-						Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+						Log.d(MPDRemoteUtils.TAG,"cnx exception " + e.getMessage());
 						try {
-							Thread.sleep(2000);
+							Thread.sleep(5000);
 						} catch (InterruptedException f) {
-							Log.e(MPDRemoteUtils.TAG, f.getMessage(), f);
+							Log.e(MPDRemoteUtils.TAG, f.getMessage(),f);
 						}
 					}
 
@@ -105,109 +106,198 @@ public class MPDService implements
 	}
 
 	private List<Song> getCurrentPlayList() {
-		List<Song> songs = new ArrayList<Song>();
-		try {
-			List<MPDSong> mpdSongList;
-			mpdSongList = mpd.getMPDPlaylist().getSongList();
+		final List<Song> songs = new ArrayList<Song>();
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					List<MPDSong> mpdSongList;
+					mpdSongList = mpd.getMPDPlaylist().getSongList();
 
-			CollectionUtils.collect(mpdSongList,
-					new MPDSongToSongTransformer(), songs);
-		} catch (MPDPlaylistException e) {
+					CollectionUtils.collect(mpdSongList,
+							new MPDSongToSongTransformer(), songs);
+				} catch (MPDPlaylistException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
+
+			}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
 		}
 
 		return songs;
 	}
 
-	public void playOrPauseSong(Song s) {
+	public void playOrPauseSong(final Song s) {
 
-		try {
-			MPDSong currentSong = mpd.getMPDPlayer().getCurrentSong();
-			boolean newSongToPlay = s != null
-					&& (currentSong == null || s
-							.getId()!=currentSong.getId());
-			Log.d(MPDRemoteUtils.TAG, "newsongtoplay ? "+newSongToPlay);
-			if (!newSongToPlay
-					&& mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
-				mpd.getMPDPlayer().pause();
-			} else if (s != null) {
-				MPDSong mpdSong = new MPDSong();
-				mpdSong.setId(s.getId());
-				mpd.getMPDPlayer().playId(mpdSong);
-			} else {
-				mpd.getMPDPlayer().play();
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					MPDSong currentSong = mpd.getMPDPlayer().getCurrentSong();
+					boolean newSongToPlay = s != null
+							&& (currentSong == null || s.getId() != currentSong
+									.getId());
+					Log.d(MPDRemoteUtils.TAG, "newsongtoplay ? "
+							+ newSongToPlay);
+					if (!newSongToPlay
+							&& mpd.getMPDPlayer().getStatus() == MPDPlayer.PlayerStatus.STATUS_PLAYING) {
+						mpd.getMPDPlayer().pause();
+					} else if (s != null) {
+						MPDSong mpdSong = new MPDSong();
+						mpdSong.setId(s.getId());
+						mpd.getMPDPlayer().playId(mpdSong);
+					} else {
+						mpd.getMPDPlayer().play();
+					}
+				} catch (MPDPlayerException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				} catch (MPDResponseException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				}
 			}
-		} catch (MPDPlayerException e) {
-			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		} catch (MPDResponseException e) {
+		});
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 		}
 
 	}
 
 	public void playPreviousSong() {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					mpd.getMPDPlayer().playPrev();
+				} catch (MPDPlayerException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
+			}
+		});
+		
+		t.start();
 		try {
-			mpd.getMPDPlayer().playPrev();
-		} catch (MPDPlayerException e) {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
 		}
+		
 	}
 
 	public void playNextSong() {
-		try {
-			mpd.getMPDPlayer().playNext();
-		} catch (MPDPlayerException e) {
-			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
-	}
-
-	public void seek(int seconds) {
-		try {
-			mpd.getMPDPlayer().seek(seconds);
-		} catch (MPDPlayerException e) {
-			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
-	}
-
-	public void addSongToPlayList(Song s) {
-		if (s != null) {
-			MPDSong mpdSong = new MPDSong();
-			mpdSong.setId(s.getId());
-			mpdSong.setFile(s.getFilename());
-			Log.d(MPDRemoteUtils.TAG,"add song to playlist : "+s.getFilename());
-			try {
-				mpd.getMPDPlaylist().addSong(mpdSong);
-			} catch (MPDPlaylistException e) {
-				Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-			} catch (MPDConnectionException e) {
-				handleMPDConnectionException(e);
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					mpd.getMPDPlayer().playNext();
+				} catch (MPDPlayerException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
 			}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
 		}
+	}
+
+	public void seek(final int seconds) {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					mpd.getMPDPlayer().seek(seconds);
+				} catch (MPDPlayerException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
+			}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		}
+	
+	}
+
+	public void addSongToPlayList(final Song s) {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				if (s != null) {
+					MPDSong mpdSong = new MPDSong();
+					mpdSong.setId(s.getId());
+					mpdSong.setFile(s.getFilename());
+					Log.d(MPDRemoteUtils.TAG,
+							"add song to playlist : " + s.getFilename());
+					try {
+						mpd.getMPDPlaylist().addSong(mpdSong);
+					} catch (MPDPlaylistException e) {
+						Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+					} catch (MPDConnectionException e) {
+						handleMPDConnectionException(e);
+					}
+				}
+			}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		}	
 
 	}
 
-	public void removeSongFromPlaylist(Song s) {
-		if (s != null) {
-			MPDSong mpdSong = new MPDSong();
-			mpdSong.setId(s.getId());
-			try {
-				mpd.getMPDPlaylist().removeSong(mpdSong);
-			} catch (MPDPlaylistException e) {
-				Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-			} catch (MPDConnectionException e) {
-				handleMPDConnectionException(e);
+	public void removeSongFromPlaylist(final Song s) {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				if (s != null) {
+					MPDSong mpdSong = new MPDSong();
+					mpdSong.setId(s.getId());
+					try {
+						mpd.getMPDPlaylist().removeSong(mpdSong);
+					} catch (MPDPlaylistException e) {
+						Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+					} catch (MPDConnectionException e) {
+						handleMPDConnectionException(e);
+					}
+				}
 			}
-		}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		}	
+	
 	}
 
 	private MPD connect(String ip, int port) throws UnknownHostException,
@@ -215,8 +305,24 @@ public class MPDService implements
 		return new MPD(ip, port);
 	}
 
-	public void addMPDListener(MPDListener p) {
-		MPDListeners.add(p);
+	public void addMPDListener(final MPDListener p) {
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				MPDListeners.add(p);
+				if (mpd != null && mpd.isConnected()) {
+					p.playListChanged(getCurrentPlayList());
+				}
+			}
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
+			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+		}	
+		
 	}
 
 	@Override
@@ -227,22 +333,37 @@ public class MPDService implements
 		}
 	}
 
-	public List<Song> getSongsInLibrary(String searchFilter) {
-		List<Song> songs = new ArrayList<Song>();
-		try {
-			Collection<MPDSong> mpdSongs=new ArrayList<MPDSong>();;
-			if (StringUtils.isEmpty(searchFilter)) {
-				mpdSongs.addAll(mpd.getMPDDatabase().listAllSongs());
-			}else{
-				mpdSongs.addAll(mpd.getMPDDatabase().search(ScopeType.ANY, searchFilter));
+	public List<Song> getSongsInLibrary(final String searchFilter) {
+		final List<Song> songs = new ArrayList<Song>();
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					Collection<MPDSong> mpdSongs = new ArrayList<MPDSong>();
+					;
+					if (StringUtils.isEmpty(searchFilter)) {
+						mpdSongs.addAll(mpd.getMPDDatabase().listAllSongs());
+					} else {
+						mpdSongs.addAll(mpd.getMPDDatabase().search(ScopeType.ANY,
+								searchFilter));
+					}
+					CollectionUtils.collect(mpdSongs, new MPDSongToSongTransformer(),
+							songs);
+				} catch (MPDDatabaseException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
 			}
-			CollectionUtils.collect(mpdSongs, new MPDSongToSongTransformer(),
-					songs);
-		} catch (MPDDatabaseException e) {
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
+		}	
+	
 		return songs;
 	}
 
@@ -255,21 +376,34 @@ public class MPDService implements
 
 	@Override
 	public void playerBasicChange(PlayerBasicChangeEvent event) {
-		try {
-			CurrentlyPlayingSong currentlyPlayingSong = new CurrentlyPlayingSong();
-			currentlyPlayingSong.setElapsedTime(mpd.getMPDPlayer()
-					.getElapsedTime());
-			currentlyPlayingSong.setSong((Song) new MPDSongToSongTransformer()
-					.transform(mpd.getMPDPlayer().getCurrentSong()));
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					CurrentlyPlayingSong currentlyPlayingSong = new CurrentlyPlayingSong();
+					currentlyPlayingSong.setElapsedTime(mpd.getMPDPlayer()
+							.getElapsedTime());
+					currentlyPlayingSong.setSong((Song) new MPDSongToSongTransformer()
+							.transform(mpd.getMPDPlayer().getCurrentSong()));
 
-			for (MPDListener p : MPDListeners) {
-				p.currentlyPlayingSongChanged(currentlyPlayingSong);
+					for (MPDListener p : MPDListeners) {
+						p.currentlyPlayingSongChanged(currentlyPlayingSong);
+					}
+				} catch (MPDPlayerException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
 			}
-		} catch (MPDPlayerException e) {
+		});
+		
+		t.start();
+		try {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
+		}	
+	
 
 	}
 
@@ -282,7 +416,10 @@ public class MPDService implements
 		for (MPDListener p : MPDListeners) {
 			p.connectionChanged(connected);
 		}
-		if (connected){
+		Log.d(MPDRemoteUtils.TAG, "cxt changed before playlist");
+		if (connected) {
+
+			Log.d(MPDRemoteUtils.TAG, "cxt changed in playlist");
 			List<Song> currentPlaylist = getCurrentPlayList();
 			for (MPDListener p : MPDListeners) {
 				p.playListChanged(currentPlaylist);
@@ -295,27 +432,55 @@ public class MPDService implements
 	}
 
 	public boolean isPaused() {
+		final MutableBoolean paused=new MutableBoolean(true);
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					paused.setValue(MPDPlayer.PlayerStatus.STATUS_PAUSED == mpd.getMPDPlayer()
+							.getStatus());
+				} catch (MPDResponseException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
+			}
+		});
+		
+		t.start();
 		try {
-			return MPDPlayer.PlayerStatus.STATUS_PAUSED == mpd.getMPDPlayer()
-					.getStatus();
-		} catch (MPDResponseException e) {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
-		return true;
+		}	
+		
+		return paused.booleanValue();
 	}
 
 	public boolean isPlaying() {
+		final MutableBoolean playing=new MutableBoolean(false);
+		Thread t = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					playing.setValue(MPDPlayer.PlayerStatus.STATUS_PLAYING == mpd.getMPDPlayer()
+							.getStatus());
+				} catch (MPDResponseException e) {
+					Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
+				} catch (MPDConnectionException e) {
+					handleMPDConnectionException(e);
+				}
+			}
+		});
+		
+		t.start();
 		try {
-			return MPDPlayer.PlayerStatus.STATUS_PLAYING == mpd.getMPDPlayer()
-					.getStatus();
-		} catch (MPDResponseException e) {
+			t.join();
+		} catch (InterruptedException e) {
 			Log.e(MPDRemoteUtils.TAG, e.getMessage(), e);
-		} catch (MPDConnectionException e) {
-			handleMPDConnectionException(e);
-		}
-		return false;
+		}	
+	
+		return playing.booleanValue();
 	}
 
 	public void setConnected(boolean connected) {
@@ -326,20 +491,17 @@ public class MPDService implements
 	public void connectionChangeEventReceived(ConnectionChangeEvent event) {
 		Log.d(MPDRemoteUtils.TAG, "cnx changed");
 		setConnected(mpd != null && mpd.isConnected());
-		Log.d(MPDRemoteUtils.TAG, "cnx changed before is connected");
 		connectionChanged(isConnected());
-		Log.d(MPDRemoteUtils.TAG, "cnx changed after is connected");
 		launchConnectThread();
-		Log.d(MPDRemoteUtils.TAG, "cnx changed after launch connect");
 	}
 
 	public void addSongToPlayList(List<Song> songsToAdd) {
-		Log.d(MPDRemoteUtils.TAG,"add song to playlist");
-		for (Song s:songsToAdd){
-			Log.d(MPDRemoteUtils.TAG,"add song "+s.getId());
+		Log.d(MPDRemoteUtils.TAG, "add song to playlist");
+		for (Song s : songsToAdd) {
+			Log.d(MPDRemoteUtils.TAG, "add song " + s.getId());
 			addSongToPlayList(s);
 		}
-		
+
 	}
 
 }

@@ -2,15 +2,19 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="fr.mildlyusefulsoftware.mpdremote"
     android:versionCode="1"
-    android:versionName="1.0-SNAPSHOT" >
+    android:versionName="1.0" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-   
+
+    <uses-sdk
+        android:minSdkVersion="7"
+        android:targetSdkVersion="13" />
+
     <application
         android:icon="@drawable/icon"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.Light"  >
+        android:theme="@android:style/Theme.Light" >
         <activity android:name=".activity.MainTabWidget" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -19,11 +23,14 @@
             </intent-filter>
         </activity>
         <activity android:name=".activity.PlaylistActivity" >
-        </activity>   
-         <activity android:name=".activity.SongLibraryActivity" >
-        </activity>   
-            <activity android:name=".activity.MPDRemotePreferencesActivity" >
-        </activity>   
+        </activity>
+        <activity android:name=".activity.SongLibraryActivity" >
+        </activity>
+        <activity android:name=".activity.MPDRemotePreferencesActivity" >
+        </activity>
+    	 <activity
+            android:name="com.google.ads.AdActivity"
+            android:configChanges="keyboard|keyboardHidden|orientation|screenLayout|uiMode|screenSize|smallestScreenSize" />
     </application>
 
 </manifest>

@@ -8,7 +8,13 @@ import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.text.SpannableString;
+import android.view.ViewGroup;
 import android.widget.TabHost;
+
+import com.google.ads.AdRequest;
+import com.google.ads.AdSize;
+import com.google.ads.AdView;
+
 import fr.mildlyusefulsoftware.mpdremote.R;
 import fr.mildlyusefulsoftware.mpdremote.bo.CurrentlyPlayingSong;
 import fr.mildlyusefulsoftware.mpdremote.bo.Song;
@@ -18,12 +24,15 @@ import fr.mildlyusefulsoftware.mpdremote.service.MPDService;
 public class MainTabWidget extends TabActivity implements MPDListener {
 
 	private MPDService mpd;
+
+	private AdView adView;
+
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		mpd=MPDService.getInstance(this);
 		setContentView(R.layout.tabs_layout);
-
+		initAdBannerView();
 		Resources res = getResources(); // Resource object to get Drawables
 		TabHost tabHost = getTabHost(); // The activity TabHost
 		TabHost.TabSpec spec; // Resusable TabSpec for each tab
@@ -45,11 +54,14 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 				.setContent(intent);
 		tabHost.addTab(spec);
 
-		tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 35;
-		tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 35;
+		tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 45;
+		tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 45;
 		connectionChanged(false);
 		tabHost.setCurrentTab(0);
 		mpd.addMPDListener(this);
+		if (mpd.isConnected()){
+			connectionChanged(true);
+		}
 
 	}
 
@@ -91,5 +103,25 @@ public class MainTabWidget extends TabActivity implements MPDListener {
 				}
 			});
 	}
+	protected void initAdBannerView() {
+		final ViewGroup layout = (ViewGroup) findViewById(R.id.tabHostRootView);
+		// Create the adView
+		adView = new AdView(this, AdSize.BANNER, "a14f9f866683db7");
+	
+		// Add the adView to it
+		layout.addView(adView);
+		AdRequest ar = new AdRequest();
+	//	ar.addTestDevice(AdRequest.TEST_EMULATOR);
+		// Initiate a generic request to load it with an ad
+		adView.loadAd(ar);
 
+	}
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		if (adView != null) {
+			adView.destroy();
+		}
+	}
 }
